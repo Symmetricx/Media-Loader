@@ -14,15 +14,10 @@ import javax.net.ssl.SSLHandshakeException
 object NetworkUtils {
 
     fun isNetworkConnected(context: Context): Boolean {
-        val cm: ConnectivityManager? = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-        if (cm != null) {
-            val activeNetwork = cm.activeNetworkInfo
-            return activeNetwork != null && activeNetwork.isConnected
-        }
-        return false
+        TODO("Must be implemented")
     }
-    fun getCustomErrorMessage(error: Throwable): String {
 
+    fun getCustomErrorMessage(error: Throwable): String {
         return when (error) {
             is SocketTimeoutException -> getAppContext().getString(R.string.requestTimeOutError)
             is MalformedJsonException -> getAppContext().getString(R.string.responseMalformedJson)

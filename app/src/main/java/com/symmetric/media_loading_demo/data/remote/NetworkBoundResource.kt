@@ -1,40 +1,51 @@
-
 package com.symmetric.media_loading_demo.data.remote
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MediatorLiveData
 import androidx.annotation.MainThread
 import androidx.annotation.WorkerThread
+import androidx.paging.DataSource
+import androidx.paging.LivePagedListBuilder
+import androidx.paging.PagedList
 import com.symmetric.media_loading_demo.AppExecutors
 import com.symmetric.media_loading_demo.data.model.api.ApiEmptyResponse
 import com.symmetric.media_loading_demo.data.model.api.ApiErrorResponse
 import com.symmetric.media_loading_demo.data.model.api.ApiResponse
 import com.symmetric.media_loading_demo.data.model.api.ApiSuccessResponse
-import retrofit2.Response
-import javax.inject.Inject
 
 /**
-* A generic class that can provide a resource backed by both the sqlite database and the network.
-*
-*
-* You can read more about it in the [Architecture
+ * A generic class that can provide a resource backed by both the sqlite database and the network.
+ *
+ *
+ * You can read more about it in the [Architecture
 * Guide](https://developer.android.com/arch).
-* @param <ResultType>
-* @param <RequestType>
+ * @param <ResultType>
+ * @param <RequestType>
 </RequestType></ResultType> */
-abstract class NetworkBoundResource<ResultType, RequestType>
-@MainThread constructor(private val appExecutors: AppExecutors) {
 
-    private val result = MediatorLiveData<Resource<ResultType>>()
+//TODO to integrate pagination behaviour implement the PagedList.BoundaryCallback methods
+abstract class NetworkBoundResource<ResultType, RequestType>
+@MainThread constructor(private val appExecutors: AppExecutors) :
+    PagedList.BoundaryCallback<ResultType>() {
+
+
+    private var pageCount = 1
+    private val result = MediatorLiveData<Resource<PagedList<ResultType>>>()
+    private var dbSource: LiveData<PagedList<ResultType>>
+
+    val pagingConfig: PagedList.Config = PagedList.Config.Builder()
+        .setPageSize(50)
+        .build()
 
     init {
         result.value = Resource.loading(null)
         @Suppress("LeakingThis")
-        val dbSource = loadFromDb()
+        val temp = loadFromDb()
+        dbSource = createPagingList(temp)
         result.addSource(dbSource) { data ->
             result.removeSource(dbSource)
             if (shouldFetch(data)) {
-                fetchFromNetwork(dbSource)
+                fetchFromNetwork(pageCount)
             } else {
                 result.addSource(dbSource) { newData ->
                     setValue(Resource.success(newData))
@@ -43,15 +54,22 @@ abstract class NetworkBoundResource<ResultType, RequestType>
         }
     }
 
+    private fun createPagingList(temp: DataSource.Factory<Int, ResultType>): LiveData<PagedList<ResultType>> {
+        return LivePagedListBuilder(temp, pagingConfig)
+            .setBoundaryCallback(this)
+            .setInitialLoadKey(1)
+            .build()
+    }
+
     @MainThread
-    private fun setValue(newValue: Resource<ResultType>) {
+    private fun setValue(newValue: Resource<PagedList<ResultType>>) {
         if (result.value != newValue) {
             result.value = newValue
         }
     }
 
-    private fun fetchFromNetwork(dbSource: LiveData<ResultType>) {
-        val apiResponse = createCall()
+    private fun fetchFromNetwork(pageNumber: Int) {
+        val apiResponse = createCall(pageNumber)
         // we re-attach dbSource as a new source, it will dispatch its latest value quickly
         result.addSource(dbSource) { newData ->
             setValue(Resource.loading(newData))
@@ -61,13 +79,14 @@ abstract class NetworkBoundResource<ResultType, RequestType>
             result.removeSource(dbSource)
             when (response) {
                 is ApiSuccessResponse -> {
+                    pageCount++
                     appExecutors.diskIO().execute {
                         saveCallResult(processResponse(response))
                         appExecutors.mainThread().execute {
                             // we specially request a new live data,
                             // otherwise we will get immediately last cached value,
                             // which may not be updated with latest results received from network.
-                            result.addSource(loadFromDb()) { newData ->
+                            result.addSource(dbSource) { newData ->
                                 setValue(Resource.success(newData))
                             }
                         }
@@ -76,7 +95,7 @@ abstract class NetworkBoundResource<ResultType, RequestType>
                 is ApiEmptyResponse -> {
                     appExecutors.mainThread().execute {
                         // reload from disk whatever we had
-                        result.addSource(loadFromDb()) { newData ->
+                        result.addSource(dbSource) { newData ->
                             setValue(Resource.success(newData))
                         }
                     }
@@ -93,21 +112,21 @@ abstract class NetworkBoundResource<ResultType, RequestType>
 
     protected open fun onFetchFailed() {}
 
-    fun asLiveData() = result as LiveData<Resource<ResultType>>
+    fun asLiveData() = result as LiveData<Resource<PagedList<ResultType>>>
 
     @WorkerThread
-    protected open fun processResponse(response: ApiSuccessResponse<RequestType>) = response.body
+    open fun processResponse(response: ApiSuccessResponse<RequestType>) = response.body
 
     @WorkerThread
     protected abstract fun saveCallResult(item: RequestType)
 
     @MainThread
-    protected abstract fun shouldFetch(data: ResultType?): Boolean
+    open fun shouldFetch(data: PagedList<ResultType>): Boolean = true
 
     @MainThread
-    protected abstract fun loadFromDb(): LiveData<ResultType>
+    protected abstract fun loadFromDb(): DataSource.Factory<Int, ResultType>
 
     @MainThread
-    protected abstract fun createCall(): LiveData<ApiResponse<RequestType>>
+    protected abstract fun createCall(pageNumber: Int): LiveData<ApiResponse<RequestType>>
 }
 

@@ -44,4 +44,4 @@ object AppLogger {
     fun w(throwable: Throwable, s: String, vararg objects: Any) {
         Timber.w(throwable, s, objects)
     }
-}// This utility class is not publicly instantiable
+}

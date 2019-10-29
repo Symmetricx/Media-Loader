@@ -11,5 +11,5 @@ import com.symmetric.media_loading_demo.data.model.db.User
 interface PictureDao : BaseDao<PictureDb> {
 
     @Query("SELECT * FROM pictures ")
-    fun picturesPag(): LiveData<List<PictureDb>>
+    fun picturesPag(): DataSource.Factory<Int, PictureDb>
 }

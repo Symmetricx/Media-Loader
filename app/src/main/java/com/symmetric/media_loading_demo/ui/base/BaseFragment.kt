@@ -50,8 +50,6 @@ abstract class BaseFragment<T : ViewDataBinding, V : BaseViewModel<*>> : DaggerF
      */
     abstract val viewModel: KClass<V>
 
-    val isNetworkConnected: Boolean
-        get() = baseActivity != null && baseActivity!!.isNetworkConnected
 
     /**
      * set up view and any necessary

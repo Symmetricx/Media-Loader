@@ -51,8 +51,6 @@ abstract class BaseActivity<T : ViewDataBinding, V : BaseViewModel<*>> : DaggerA
      */
     abstract val viewModel: KClass<V>
 
-    val isNetworkConnected: Boolean
-        get() = NetworkUtils.isNetworkConnected(applicationContext)
 
     /**
      * set up view and any necessary

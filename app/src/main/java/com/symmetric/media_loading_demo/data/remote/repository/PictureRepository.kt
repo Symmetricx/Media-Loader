@@ -1,6 +1,8 @@
 package com.symmetric.media_loading_demo.data.remote.repository
 
 import androidx.lifecycle.LiveData
+import androidx.paging.DataSource
+import androidx.paging.PagedList
 import com.symmetric.media_loading_demo.AppExecutors
 import com.symmetric.media_loading_demo.data.local.dao.PictureDao
 import com.symmetric.media_loading_demo.data.model.api.ApiResponse
@@ -17,19 +19,17 @@ class PictureRepository @Inject constructor(
     private val service: ApiService
 ) {
 
-    fun all(): LiveData<Resource<List<PictureDb>>> {
+    fun all(): LiveData<Resource<PagedList<PictureDb>>> {
 
-        return object : NetworkBoundResource<List<PictureDb>, List<Picture>>(appExecutors) {
-            override fun shouldFetch(data: List<PictureDb>?): Boolean {
-                return true
-            }
+        return object : NetworkBoundResource<PictureDb, List<Picture>>(appExecutors) {
+            override fun shouldFetch(data: PagedList<PictureDb>): Boolean = true
 
-            override fun loadFromDb(): LiveData<List<PictureDb>> {
-                return itemDao.picturesPag()
-            }
-
-            override fun createCall(): LiveData<ApiResponse<List<Picture>>> {
+            override fun createCall(pageNumber: Int): LiveData<ApiResponse<List<Picture>>> {
                 return service.getPictures()
+            }
+
+            override fun loadFromDb(): DataSource.Factory<Int, PictureDb> {
+                return itemDao.picturesPag()
             }
 
             override fun saveCallResult(item: List<Picture>) {
