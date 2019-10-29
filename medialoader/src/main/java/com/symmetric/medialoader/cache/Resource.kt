@@ -6,7 +6,7 @@ import com.symmetric.medialoader.cache.ResourceType.BITMAP
 import com.symmetric.medialoader.cache.ResourceType.EMPTY
 import com.symmetric.medialoader.cache.ResourceType.BYTE_ARRAY
 
-data class Resource private constructor(
+data class Resource constructor(
     val byteArray: ByteArray? = null,
     val bitmap: Bitmap? = null,
 
@@ -18,10 +18,9 @@ data class Resource private constructor(
      * [BITMAP] -> Bitmap resource,
      * [BYTE_ARRAY] -> Byte Array resource,
      */
-    val type: Int = 0,
-
-    var byteCount: Int = 0
+    val type: Int = EMPTY
 ) {
+    var byteCount: Int = 0
 
     init {
         calcSize()
@@ -30,15 +29,16 @@ data class Resource private constructor(
     private fun calcSize(): Int {
         this.byteCount = when (this.type) {
             EMPTY -> 0
-            BITMAP -> return if (this.bitmap != null) {
+            BITMAP -> if (this.bitmap != null) {
                 BitmapCompat.getAllocationByteCount(this.bitmap)
             } else 0
 
-            BYTE_ARRAY -> return if (this.byteArray != null) {
+            BYTE_ARRAY ->  if (this.byteArray != null) {
                 this.byteArray.size
             } else 0
             else -> 0
         }
+        val temp = byteCount
         return byteCount
     }
 
@@ -92,7 +92,7 @@ data class Resource private constructor(
                 this.bitmap != null -> BITMAP
                 else -> EMPTY
             }
-            return Resource(this.byteArray, this.bitmap, this.type, 0)
+            return Resource(this.byteArray, this.bitmap, this.type)
         }
 
     }
