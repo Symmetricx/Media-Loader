@@ -1,0 +1,25 @@
+<resources>
+    <string name="app_name">Media Loading Demo</string>
+    <string name="something_went_wrong">Something went wrong</string>
+    <string name="sorry_there_is_no_item_at_the_moment">Sorry! there is no items at the moment.</string>
+    <string name="delete">Delete</string>
+    <string name="confirm_deletion">Are you sure you want to delete this item?</string>
+
+    <!-- Network Errors-->
+    <string name="networkError">Oh! You are not connected to a wifi or cellular data network. Please connect and try again</string>
+    <string name="networkErrorCode">NO_INTERNET_CONNECTION</string>
+    <string name="unknownError">Connection Error! please check your network settings</string>
+    <string name="sslHandshakeError">Secure connection failed to be established</string>
+
+    <string name="requestTimeOutError">Oooops! We couldn’t capture your request in time. Please try again.</string>
+
+    <string name="errorCodeMalformedJson">MALFORMED_JSON</string>
+    <string name="responseMalformedJson">Oops! We hit an error. Try again later.</string>
+
+    <string name="errorCodeConnectFailed">Connection failed</string>
+    <string name="responseConnectFailed">Oops! Connection timeout.</string>
+
+    // BaseAdapter
+    <string name="default_error">Something wrong happened!</string>
+    <string name="no_data">no data</string>
+</resources>
