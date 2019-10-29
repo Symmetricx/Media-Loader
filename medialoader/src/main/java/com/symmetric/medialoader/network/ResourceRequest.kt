@@ -25,12 +25,6 @@ class ResourceRequest private constructor(
     val key: String
     ) {
 
-
-    public fun hasSize(): Boolean {
-        return targetHeight != 0 || targetWidth != 0
-    }
-
-
     class Builder(
         var uri: Uri
     ) {

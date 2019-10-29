@@ -42,8 +42,6 @@ class RequestCreator(
 
         this.requestBuilder.target = target
         this.requestBuilder.callback = callback
-        this.requestBuilder.targetWidth = target.width
-        this.requestBuilder.targetHeight = target.height
 
         return startRequest()
 
