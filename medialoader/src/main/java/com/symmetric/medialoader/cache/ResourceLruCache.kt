@@ -9,14 +9,8 @@ import com.symmetric.medialoader.cache.ResourceType.EMPTY
 /** A memory cache which uses a least-recently used eviction policy.  */
 class ResourceLruCache
 /** Create a cache with a given maximum size in bytes.  */
-    (maxByteCount: Int) : com.symmetric.medialoader.cache.LruCache<String, Resource>{
-
-    override val cache: LruCache<String, Resource> =
-        object : LruCache<String, Resource>(if (maxByteCount != 0) maxByteCount else 1) {
-            override fun sizeOf(key: String, value: Resource): Int {
-                return value.byteCount
-            }
-        }
+    (var cache: LruCache<String, Resource>) :
+    com.symmetric.medialoader.cache.LruCache<String, Resource> {
 
 
     override operator fun get(key: String): Resource? {

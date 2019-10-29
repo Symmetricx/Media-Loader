@@ -6,10 +6,6 @@ import android.util.LruCache
 /** A memory cache which uses a least-recently used eviction policy.  */
 interface LruCache<K,V> {
 
-    /**
-     * an instance of [LruCache] that will be used to cache resources
-     */
-    val cache: LruCache<K, V>
 
     /**
      * get a [V] value using a [K] key from the [cache]

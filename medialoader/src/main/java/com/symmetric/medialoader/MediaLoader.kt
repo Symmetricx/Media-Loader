@@ -53,6 +53,7 @@ class MediaLoader(
         var okHttpClient: OkHttpClient? = null
         var handler: Handler? = null
         var networkRequestHandler: NetworkRequestHandler? = null
+        var lruCache: android.util.LruCache<String, Resource>? = null
 
 
         constructor(context: Context, cache: LruCache<String, Resource>) : this(context) {
@@ -78,7 +79,19 @@ class MediaLoader(
             }
 
             if (this.cache == null) {
-                cache = ResourceLruCache(calculateMemoryCacheSize(this.context))
+
+                if (lruCache == null) {
+                    // Init an LruCache
+                    val maxSize = calculateMemoryCacheSize(this.context)
+
+                    lruCache = object : android.util.LruCache<String, Resource>(maxSize) {
+                        override fun sizeOf(key: String, value: Resource): Int {
+                            return value.byteCount
+                        }
+                    }
+                }
+
+                cache = ResourceLruCache(lruCache!!)
             }
 
             if (this.okHttpClient == null) {
