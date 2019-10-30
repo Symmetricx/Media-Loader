@@ -13,6 +13,7 @@ import okhttp3.Call
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
+import okhttp3.internal.toImmutableMap
 import java.io.IOException
 import java.lang.Exception
 import java.lang.RuntimeException
@@ -21,10 +22,16 @@ import kotlin.collections.HashMap
 class NetworkRequestHandler(
     private val lruCache: LruCache<String, Resource>,
     private val okHttpClient: OkHttpClient,
-    private val mainThreadHandler: Handler = Handler(Looper.getMainLooper())
-) : RequestHandler<String, Resource> {
-    override val requests: HashMap<String, MutableList<ResourceRequest>> = HashMap()
+    private val mainThreadHandler: Handler = Handler(Looper.getMainLooper()),
+    private val requestBuilder: Request.Builder
+) : RequestHandler<String, Resource>{
 
+
+    private val requests: HashMap<String, MutableList<ResourceRequest>> = HashMap()
+
+    override fun getRequests(): Map<String, List<ResourceRequest>> {
+        return requests.toImmutableMap()
+    }
 
     override fun load(request: ResourceRequest) {
 
@@ -107,8 +114,7 @@ class NetworkRequestHandler(
     private fun createRequest(request: ResourceRequest): Request {
         val uri = checkNotNull(request.uri) { "request.uri == null" }
 
-        return Request.Builder()
-            .url(uri.toString())
+        return requestBuilder.url(uri.toString())
             .tag(request.key)
             .build()
 
@@ -139,18 +145,18 @@ class NetworkRequestHandler(
         requests.remove(request.key)
     }
 
-    override fun handleRequestSuccess(resource: Resource, it: ResourceRequest) {
+    override fun handleRequestSuccess(resource: Resource, request: ResourceRequest) {
         when {
             resource.type == BYTE_ARRAY -> {
                 mainThreadHandler.post {
-                    it.callback?.onSuccess(resource.byteArray)
+                    request.callback?.onSuccess(resource.byteArray)
                 }
             }
             resource.type == BITMAP -> {
                 mainThreadHandler.post {
-                    it.callback?.onSuccess(resource.bitmap)
-                    if (it.isImage && it.target.get() != null) {
-                        it.target.get()?.setImageBitmap(resource.bitmap)
+                    request.callback?.onSuccess(resource.bitmap)
+                    if (request.isImage && request.target.get() != null) {
+                        request.target.get()?.setImageBitmap(resource.bitmap)
                     }
                 }
             }

@@ -1,10 +1,9 @@
 package com.symmetric.medialoader.network
 
-import kotlin.collections.HashMap
 
 interface RequestHandler<K, V> {
 
-    val requests: HashMap<K, MutableList<ResourceRequest>>
+    fun getRequests(): Map<String, List<ResourceRequest>>
 
     /**
      * create a remote call request and fetch needed data
@@ -14,7 +13,7 @@ interface RequestHandler<K, V> {
     fun load(request: ResourceRequest)
 
     /**
-     * cancel running or enqueued call request and remove request from [requests]
+     * cancel running or enqueued call request and remove request from requests
      * @param id resource id
      * @param key key for the remote request
      */
@@ -29,7 +28,7 @@ interface RequestHandler<K, V> {
 
     /**
      * cancel running or enqueued call request
-     * by getting the resource key [K] of a [ResourceRequest] from the [requests] map
+     * by getting the resource key [K] of a [ResourceRequest] from the requests map
      * @param id resource id
      */
     fun cancelRequest(id: Int)

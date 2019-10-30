@@ -13,6 +13,7 @@ import com.symmetric.medialoader.network.RequestHandler
 import com.symmetric.medialoader.network.ResourceRequest
 import com.symmetric.medialoader.util.calculateMemoryCacheSize
 import okhttp3.OkHttpClient
+import okhttp3.Request
 
 class MediaLoader(
     private val networkRequestHandler: RequestHandler<String, Resource>,
@@ -54,6 +55,7 @@ class MediaLoader(
         var handler: Handler? = null
         var networkRequestHandler: NetworkRequestHandler? = null
         var lruCache: android.util.LruCache<String, Resource>? = null
+        var requestBuilder: Request.Builder? = null
 
 
         constructor(context: Context, cache: LruCache<String, Resource>) : this(context) {
@@ -102,12 +104,17 @@ class MediaLoader(
                 handler = Handler(context.mainLooper)
             }
 
+            if(requestBuilder == null){
+                requestBuilder = Request.Builder()
+            }
+
             if (this.networkRequestHandler == null) {
 
                 this.networkRequestHandler = NetworkRequestHandler(
                     this.cache!!,
                     this.okHttpClient!!,
-                    this.handler!!
+                    this.handler!!,
+                    this.requestBuilder!!
                 )
             }
 

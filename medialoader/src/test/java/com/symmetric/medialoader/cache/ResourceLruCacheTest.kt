@@ -32,7 +32,7 @@ class ResourceLruCacheTest {
     private val key = "KEY"
 
     @Before
-    fun setUp() {
+    fun setup() {
         cache = ResourceLruCache(lruCache)
 
         smallResource = Resource
