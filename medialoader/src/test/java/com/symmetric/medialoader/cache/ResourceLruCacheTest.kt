@@ -55,7 +55,7 @@ class ResourceLruCacheTest {
     @Test
     fun init_new_cache() {
 
-        assertEquals(cache.maxSize(), four_mb)
+        assertEquals(four_mb, cache.maxSize())
         verify(lruCache).maxSize()
     }
 

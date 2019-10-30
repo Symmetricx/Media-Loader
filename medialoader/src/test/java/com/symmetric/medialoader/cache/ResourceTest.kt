@@ -22,9 +22,9 @@ class ResourceTest {
     fun empty_builder() {
         val resource = Resource.Builder().build()
 
-        assertEquals(resource.bitmap, null)
-        assertEquals(resource.byteArray, null)
-        assertEquals(resource.type, EMPTY)
+        assertNull(resource.bitmap)
+        assertNull( resource.byteArray)
+        assertEquals(EMPTY, resource.type)
     }
 
     @Test
@@ -32,7 +32,7 @@ class ResourceTest {
         val resource = Resource.Builder(bitmap).build()
 
         assertNotNull(resource.bitmap)
-        assertEquals(resource.type, BITMAP)
+        assertEquals(BITMAP, resource.type)
     }
 
     @Test
@@ -41,8 +41,8 @@ class ResourceTest {
         val resource = Resource.Builder(generateByteArray(arraySize)).build()
 
         assertNotNull(resource.byteArray)
-        assertEquals(resource.byteCount, arraySize)
-        assertEquals(resource.type, BYTE_ARRAY)
+        assertEquals(arraySize ,resource.byteCount)
+        assertEquals(BYTE_ARRAY, resource.type)
     }
 
     @Test
@@ -53,7 +53,7 @@ class ResourceTest {
         val secondResource = Resource.Builder(resource).build()
 
         assertNotNull(secondResource.byteArray)
-        assertEquals(secondResource.byteCount, arraySize)
-        assertEquals(secondResource.type, BYTE_ARRAY)
+        assertEquals(arraySize, secondResource.byteCount)
+        assertEquals(BYTE_ARRAY, secondResource.type)
     }
 }
