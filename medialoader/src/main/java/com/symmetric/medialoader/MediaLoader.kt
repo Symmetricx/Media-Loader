@@ -26,7 +26,7 @@ class MediaLoader(
      * @return [RequestCreator] a request creator
      */
     fun load(uri: Uri): RequestCreator {
-        return RequestCreator(this, uri, networkRequestHandler)
+        return RequestCreator(lruCache, uri, networkRequestHandler)
     }
 
     /**
@@ -56,20 +56,6 @@ class MediaLoader(
         var networkRequestHandler: NetworkRequestHandler? = null
         var lruCache: android.util.LruCache<String, Resource>? = null
         var requestBuilder: Request.Builder? = null
-
-
-        constructor(context: Context, cache: LruCache<String, Resource>) : this(context) {
-            this.cache = cache
-        }
-
-        constructor(
-            context: Context,
-            networkRequestHandler: NetworkRequestHandler,
-            cache: LruCache<String, Resource>
-        ) : this(context) {
-            this.networkRequestHandler = networkRequestHandler
-            this.cache = cache
-        }
 
         fun build(): MediaLoader {
 
@@ -128,16 +114,15 @@ class MediaLoader(
 
     companion object {
 
-        private lateinit var instance: MediaLoader
+        @Volatile
+        private var instance: MediaLoader? = null
 
         fun get(context: Context?): MediaLoader {
             require(context != null) { "Context must not be null" }
 
-            if (!::instance.isInitialized) {
-                instance = Builder(context).build()
+            return instance?: synchronized(this){
+                instance?:Builder(context).build().also { instance = it }
             }
-
-            return instance
         }
     }
 

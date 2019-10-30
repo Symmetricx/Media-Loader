@@ -4,11 +4,12 @@ import android.graphics.Bitmap
 import android.net.Uri
 import android.widget.ImageView
 import com.symmetric.medialoader.MediaLoader
+import com.symmetric.medialoader.cache.LruCache
 import com.symmetric.medialoader.cache.Resource
 import com.symmetric.medialoader.cache.ResourceType.EMPTY
 
 class RequestCreator(
-    private val mediaLoader: MediaLoader,
+    private val lruCache: LruCache<String, Resource>,
     uri: Uri,
     private val networkRequestHandler: RequestHandler<String, Resource>
 ) {
@@ -54,7 +55,7 @@ class RequestCreator(
     private fun startRequest(): Pair<String, Int> {
         val request = createRequest()
 
-        val resource = Resource.Builder(mediaLoader.lruCache[request.key]).build()
+        val resource = Resource.Builder(lruCache[request.key]).build()
 
         if (resource.type != EMPTY) {
             networkRequestHandler.handleRequestSuccess(resource, request)
