@@ -9,8 +9,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.Mock
 import org.mockito.Mockito
-import org.mockito.Mockito.`when`
-import org.mockito.Mockito.verify
+import org.mockito.Mockito.*
 import org.mockito.junit.MockitoJUnitRunner
 
 @RunWith(MockitoJUnitRunner::class)
@@ -19,7 +18,13 @@ class ResourceLruCacheTest {
     @Mock
     lateinit var lruCache: LruCache<String, Resource>
 
-    lateinit var resource: Resource
+    lateinit var bigResource: Resource
+
+    lateinit var smallResource: Resource
+
+    lateinit var cache: ResourceLruCache
+
+
 
     //  4 MB
     private val four_mb = 4 * 1024 * 1024
@@ -28,17 +33,27 @@ class ResourceLruCacheTest {
 
     @Before
     fun setUp() {
-        resource = Resource
+        cache = ResourceLruCache(lruCache)
+
+        smallResource = Resource
+            .Builder(generateByteArray())
+            .build()
+
+        bigResource = Resource
             .Builder(generateByteArray(four_mb + 1))
             .build()
 
         `when`(lruCache.maxSize()).thenReturn(four_mb)
-        `when`(lruCache.remove(key)).thenReturn(resource)
+        `when`(lruCache.remove(key)).thenReturn(smallResource)
+        `when`(lruCache.put(key, smallResource)).thenReturn(smallResource)
+
+        val cachedResources = HashMap<String, Resource>()
+        cachedResources[key] = smallResource
+        `when`(lruCache.snapshot()).thenReturn(cachedResources)
     }
 
     @Test
     fun init_new_cache() {
-        val cache = ResourceLruCache(lruCache)
 
         assertEquals(cache.maxSize(), four_mb)
         verify(lruCache).maxSize()
@@ -46,10 +61,35 @@ class ResourceLruCacheTest {
 
     @Test
     fun add_bigger_resource_than_max_size() {
-        val cache = ResourceLruCache(lruCache)
+        cache[key] = bigResource
 
-        cache[key] = resource
         verify(lruCache).maxSize()
         verify(lruCache).remove(key)
     }
+
+    @Test
+    fun add_resource_success() {
+        cache[key] = smallResource
+
+        verify(lruCache).maxSize()
+        verify(lruCache).put(key, smallResource)
+    }
+
+    @Test
+    fun clear_key_doesnt_exist() {
+        cache.clearKey(key + 1)
+
+        verify(lruCache).snapshot()
+        verifyNoMoreInteractions(lruCache)
+    }
+
+
+    @Test
+    fun clear_key_exist() {
+        cache.clearKey(key)
+
+        verify(lruCache).snapshot()
+        verify(lruCache).remove(key)
+    }
+
 }
